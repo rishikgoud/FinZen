@@ -21,7 +21,7 @@ const Login = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE}/auth/login`, {
         email,
         password,
       });
@@ -122,7 +122,7 @@ const Login = () => {
         </form>
 
         <div className="mt-4 text-center text-sm">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link to="/register" className="underline hover:text-lime-300">
             Register here
           </Link>

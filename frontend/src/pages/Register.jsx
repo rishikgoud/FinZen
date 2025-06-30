@@ -33,14 +33,14 @@ const Register = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE}/auth/register`, {
         email,
         password,
         profile: { firstName: username },
       });
 
       // Automatically log the user in after successful registration
-      const loginRes = await axios.post("http://localhost:5000/api/auth/login", {
+      const loginRes = await axios.post(`${import.meta.env.VITE_API_BASE}/auth/login`, {
         email,
         password,
       });
