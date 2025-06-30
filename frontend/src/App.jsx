@@ -45,7 +45,7 @@ function AnimatedRoutes() {
   );
 }
 
-function App() {
+function AppContent() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { isLoggedIn } = useAuth();
 
@@ -74,19 +74,21 @@ function App() {
 
   return (
     <>
-      <AuthProvider>
-        <Toaster position="top-center" />
-        {showOnboarding && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <div className="w-full max-w-2xl mx-auto">
-              <Onboarding onFinish={() => setShowOnboarding(false)} />
-            </div>
+      <Toaster position="top-center" />
+      {showOnboarding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-2xl mx-auto">
+            <Onboarding onFinish={() => setShowOnboarding(false)} />
           </div>
-        )}
-        <AnimatedRoutes />
-    </AuthProvider>
+        </div>
+      )}
+      <AnimatedRoutes />
     </>
   );
+}
+
+function App() {
+  return <AppContent />;
 }
 
 export default App;
