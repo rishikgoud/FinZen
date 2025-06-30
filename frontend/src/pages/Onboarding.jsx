@@ -82,7 +82,7 @@ const Onboarding = ({ onFinish }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0f1c] text-white overflow-y-auto flex items-center justify-center min-h-screen">
+    <div className="fixed inset-0 z-50 bg-[#0a0f1c] pt-8 text-white overflow-y-auto flex items-center justify-center min-h-screen">
       <div className="absolute inset-0 -z-10">
         <AnimatedBackground />
       </div>

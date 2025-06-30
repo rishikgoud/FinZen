@@ -11,12 +11,15 @@ import {
   FaTimes,
   FaMoon,
   FaSignOutAlt,
+  FaChevronDown,
+  FaCog,
 } from "react-icons/fa";
 
 const Navbar = ({ minimal = false }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +50,15 @@ const Navbar = ({ minimal = false }) => {
       <span className="inline-block">{label}</span>
     </button>
   );
+
+  // Add dashboard dropdown links
+  const dashboardLinks = [
+    { label: "Overview", route: "/dashboard", icon: FaTachometerAlt },
+    { label: "Spending Coach", route: "/dashboard/spending-coach", icon: FaUser },
+    { label: "Micro Investor", route: "/dashboard/micro-investor", icon: FaUserPlus },
+    { label: "Loan Eligibility", route: "/dashboard/loan-eligibility", icon: FaBookOpen },
+    { label: "Settings", route: "/dashboard/settings", icon: FaCog },
+  ];
 
   if (minimal) {
     // Minimal topbar for dashboard pages
@@ -102,7 +114,30 @@ const Navbar = ({ minimal = false }) => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex space-x-2 items-center">
-          {navLink(FaTachometerAlt, "Dashboard", "/dashboard")}
+          <div className="relative">
+            <button
+              onClick={() => setShowDashboardDropdown((v) => !v)}
+              className="group flex items-center gap-2 px-4 py-2 rounded-lg transition font-semibold text-white/90 hover:bg-gradient-to-r hover:from-[#1db954]/80 hover:to-[#1e90ff]/80 hover:text-white"
+            >
+              <FaTachometerAlt className="text-xl group-hover:scale-110 transition-transform" />
+              <span className="inline-block">Dashboard</span>
+              <FaChevronDown className="ml-1 text-xs" />
+            </button>
+            {showDashboardDropdown && (
+              <div className="absolute left-0 mt-2 bg-[#0a0f1c] text-white rounded-lg shadow-lg w-56 z-20 overflow-hidden border border-white/10">
+                {dashboardLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.route}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-white/10 text-base font-medium"
+                    onClick={() => setShowDashboardDropdown(false)}
+                  >
+                    <item.icon className="text-lg" /> {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           {navLink(FaBookOpen, "Resources", "/resources")}
           {navLink(FaBell, "Notifications", "/notifications")}
 
@@ -171,7 +206,30 @@ const Navbar = ({ minimal = false }) => {
       {/* Mobile Dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-[#0a0f1c]/95 text-white px-6 py-4 space-y-3 rounded-b-xl shadow-lg">
-          {navLink(FaTachometerAlt, "Dashboard", "/dashboard")}
+          <div className="relative">
+            <button
+              onClick={() => setShowDashboardDropdown((v) => !v)}
+              className="group flex items-center gap-2 px-4 py-2 rounded-lg transition font-semibold text-white/90 hover:bg-gradient-to-r hover:from-[#1db954]/80 hover:to-[#1e90ff]/80 hover:text-white w-full"
+            >
+              <FaTachometerAlt className="text-xl group-hover:scale-110 transition-transform" />
+              <span className="inline-block">Dashboard</span>
+              <FaChevronDown className="ml-1 text-xs" />
+            </button>
+            {showDashboardDropdown && (
+              <div className="mt-2 bg-white text-[#0a0f1c] rounded-lg shadow-lg w-full z-20 overflow-hidden">
+                {dashboardLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.route}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-base font-medium"
+                    onClick={() => { setShowDashboardDropdown(false); setMenuOpen(false); }}
+                  >
+                    <item.icon className="text-lg" /> {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           {navLink(FaBookOpen, "Resources", "/resources")}
           {navLink(FaBell, "Notifications", "/notifications")}
 

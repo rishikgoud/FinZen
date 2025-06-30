@@ -61,7 +61,7 @@ const Register = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0f1c]">
+    <div className="relative min-h-screen flex items-center pt-8 justify-center overflow-hidden bg-[#0a0f1c]">
       <Toaster position="top-center" />
 
       {/* 🫧 Floating Bubbles Background */}

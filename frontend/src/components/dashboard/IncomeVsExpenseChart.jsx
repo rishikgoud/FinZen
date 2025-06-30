@@ -133,17 +133,17 @@ const IncomeVsExpenseChart = () => {
         {/* Main Chart Container */}
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           {/* Controls */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-2">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 text-transparent bg-clip-text">
               Income vs Expense Flow
             </h3>
-            <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
-              {["day", "week", "month"].map((f) => (
+            <div className="overflow-x-auto whitespace-nowrap flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+              {['day', 'week', 'month'].map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => setFilter(f)}
-                  className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform ${
+                  className={`min-w-[90px] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform ${
                     filter === f
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-105"
                       : "text-white/60 hover:text-white hover:bg-white/10"

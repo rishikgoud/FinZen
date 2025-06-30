@@ -16,6 +16,7 @@ import Resources from './pages/Resources';
 import Onboarding from './pages/Onboarding';
 import { AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import Navbar from './components/common/Navbar';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -74,6 +75,7 @@ function AppContent() {
 
   return (
     <>
+      <Navbar />
       <Toaster position="top-center" />
       {showOnboarding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">

@@ -79,7 +79,7 @@ const Settings = () => {
 
   return (
     <DashboardLayout>
-      <div className="w-full flex justify-center px-2 sm:px-4 py-8">
+      <div className="w-full flex justify-center px-2 pt-24 sm:px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
