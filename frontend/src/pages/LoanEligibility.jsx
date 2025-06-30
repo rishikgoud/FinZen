@@ -4,7 +4,7 @@ import LoanEligibilityDesk from "../components/dashboard/LoanEligibilityDesk";
 
 const LoanEligibilityPage = () => (
   <DashboardLayout>
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="w-full px-2 sm:px-4 py-8">
       <LoanEligibilityDesk />
     </div>
   </DashboardLayout>

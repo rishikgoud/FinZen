@@ -66,7 +66,7 @@ const Sidebar = () => {
               onClick={() => setOpen(false)}
             >
               <span className="text-xl group-hover:scale-110 transition-transform">{item.icon}</span>
-              <span className="hidden md:inline-block">{item.label}</span>
+              <span className="inline-block text-base font-medium">{item.label}</span>
             </Link>
           ))}
         </nav>

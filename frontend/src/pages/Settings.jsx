@@ -83,7 +83,7 @@ const Settings = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-xl mx-auto"
+        className="w-full px-2 sm:px-4 mx-auto"
       >
         <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-transparent bg-clip-text">Settings</h2>
         {/* User Profile Edit */}

@@ -4,7 +4,7 @@ import SpendingCoach from "../components/dashboard/SpendingCoach";
 
 const SpendingCoachPage = () => (
   <DashboardLayout>
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="w-full px-2 sm:px-4 py-8">
       <SpendingCoach />
     </div>
   </DashboardLayout>
