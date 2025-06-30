@@ -1,0 +1,74 @@
+import { Toaster } from 'react-hot-toast';
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";  
+import { AuthProvider } from "./context/AuthContext";
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from "./pages/ForgotPassword";
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
+import SpendingCoachPage from './pages/SpendingCoach';
+import MicroInvestorGuidePage from './pages/MicroInvestorGuide';
+import LoanEligibilityPage from './pages/LoanEligibility';
+import Resources from './pages/Resources';
+import Onboarding from './pages/Onboarding';
+import { AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+
+function PrivateRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" />;
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/dashboard/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
+        <Route path="/dashboard/spending-coach" element={<PrivateRoute><SpendingCoachPage /></PrivateRoute>} />
+        <Route path="/dashboard/micro-investor" element={<PrivateRoute><MicroInvestorGuidePage /></PrivateRoute>} />
+        <Route path="/dashboard/loan-eligibility" element={<PrivateRoute><LoanEligibilityPage /></PrivateRoute>} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setShowOnboarding(true);
+    window.addEventListener('openOnboarding', handler);
+    return () => window.removeEventListener('openOnboarding', handler);
+  }, []);
+
+  return (
+    <>
+      <AuthProvider>
+        <Toaster position="top-center" />
+        {showOnboarding && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="w-full max-w-2xl mx-auto">
+              <Onboarding onFinish={() => setShowOnboarding(false)} />
+            </div>
+          </div>
+        )}
+        <AnimatedRoutes />
+    </AuthProvider>
+    </>
+  );
+}
+
+export default App;
