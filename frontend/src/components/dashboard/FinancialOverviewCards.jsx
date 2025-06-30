@@ -19,9 +19,9 @@ const FinancialOverviewCards = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full min-w-0 overflow-x-auto">
       {cards.map((card, index) => {
-        let cardClass = "rounded-xl p-6 shadow-lg transition-all hover:scale-105 hover:shadow-2xl hover:border-2 hover:border-[#1db954]/60 ";
+        let cardClass = "rounded-xl p-4 sm:p-6 shadow-lg transition-all hover:scale-105 hover:shadow-2xl hover:border-2 hover:border-[#1db954]/60 w-full min-w-0 ";
         if (card.label === "Total Spend") {
           cardClass += "bg-gradient-to-r from-red-600 to-pink-600 ";
         } else if (card.label === "Savings") {

@@ -55,7 +55,7 @@ const SpendingChart = ({ preview = false }) => {
       initial={{ opacity: 0, x: -30 }}
       whileInView={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
-      className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg relative"
+      className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-6 shadow-lg relative w-full min-w-0 overflow-x-auto"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-transparent bg-clip-text">

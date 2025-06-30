@@ -9,42 +9,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { fetchIncomeVsExpense } from "../../utils/api";
 
 const IncomeVsExpenseChart = () => {
   const [filter, setFilter] = useState("month");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [animationKey, setAnimationKey] = useState(0);
-
-  // API function to fetch income vs expense data
-  const fetchIncomeVsExpense = async (filter = "month") => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const res = await fetch(
-        `http://localhost:5000/api/income-vs-expense?filter=${filter}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
-    } catch (err) {
-      console.error("❌ Income vs Expense fetch error:", err.message);
-      return [];
-    }
-  };
 
   // Format date for display based on filter type
   const formatDateForDisplay = (dateString, filter) => {
@@ -147,7 +118,7 @@ const IncomeVsExpenseChart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent p-6">
+    <div className="w-full min-w-0 bg-transparent p-4 sm:p-6 overflow-x-auto">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
