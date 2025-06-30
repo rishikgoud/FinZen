@@ -41,10 +41,10 @@ const Dashboard = () => {
       {/* Sidebar */}
       <Sidebar />
       {/* Main Content */}
-      <main className="flex-1 px-2 sm:px-4 md:px-10 py-8 transition-all md:ml-56 ml-0 w-full max-w-full overflow-x-auto">
+      <main className="flex-1 px-2 sm:px-4 md:px-10 py-8 transition-all md:ml-56 ml-0 w-full max-w-full overflow-x-auto flex flex-col items-center">
         {/* Onboarding Data Card */}
         {(onboardingData.goal || onboardingData.categories?.length || onboardingData.upiApps?.length) && (
-          <div className="mb-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1db954]/30 to-[#1e90ff]/30 border border-white/10 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="mb-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1db954]/30 to-[#1e90ff]/30 border border-white/10 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full max-w-lg mx-auto">
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Your Profile Highlights</h3>
               <div className="flex flex-wrap gap-4">
@@ -71,7 +71,7 @@ const Dashboard = () => {
           </div>
         )}
         {/* Greeting and Add Transaction */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4 w-full max-w-lg mx-auto">
           <GreetingSection />
           <button
             className="bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg font-semibold hover:scale-105 transition-transform self-center md:self-auto w-full md:w-auto"
@@ -81,12 +81,12 @@ const Dashboard = () => {
           </button>
         </div>
         {/* Overview Section */}
-        <section className="mb-10">
+        <section className="mb-10 w-full max-w-lg mx-auto">
           <h2 className="text-xl font-bold text-white/80 mb-4">Overview</h2>
           <FinancialOverviewCards />
         </section>
         {/* Charts Section */}
-        <section className="mb-10">
+        <section className="mb-10 w-full max-w-lg mx-auto">
           <h2 className="text-xl font-bold text-white/80 mb-4">Charts</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <SpendingChart />
@@ -97,12 +97,12 @@ const Dashboard = () => {
           </div>
         </section>
         {/* Transactions Section */}
-        <section className="mb-10" ref={transactionSectionRef}>
+        <section className="mb-10 w-full max-w-lg mx-auto" ref={transactionSectionRef}>
           <h2 className="text-xl font-bold text-white/80 mb-4">Recent Transactions</h2>
           <TransactionHistory />
         </section>
         {/* Insights Section */}
-        <section className="mb-10">
+        <section className="mb-10 w-full max-w-lg mx-auto">
           <h2 className="text-xl font-bold text-white/80 mb-4">Quick Insights</h2>
           <QuickInsights />
         </section>
@@ -116,7 +116,7 @@ const Dashboard = () => {
           </div>
         </section> */}
         {/* Loan & Goals Section */}
-        <section className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-lg mx-auto">
           <div>
             <LoanEligibilityDesk />
           </div>

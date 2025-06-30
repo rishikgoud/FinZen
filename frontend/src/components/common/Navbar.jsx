@@ -44,7 +44,7 @@ const Navbar = ({ minimal = false }) => {
       className="group flex items-center gap-2 px-4 py-2 rounded-lg transition font-semibold text-white/90 hover:bg-gradient-to-r hover:from-[#1db954]/80 hover:to-[#1e90ff]/80 hover:text-white"
     >
       <Icon className="text-xl group-hover:scale-110 transition-transform" />
-      <span className="hidden sm:inline-block">{label}</span>
+      <span className="inline-block">{label}</span>
     </button>
   );
 
@@ -59,7 +59,7 @@ const Navbar = ({ minimal = false }) => {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition"
             >
               <FaUser className="text-xl" />
-              <span className="hidden sm:inline-block">Profile</span>
+              <span className="inline-block">Profile</span>
             </button>
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 bg-white text-[#0a0f1c] rounded-lg shadow-lg w-40 z-10 overflow-hidden">
@@ -113,7 +113,7 @@ const Navbar = ({ minimal = false }) => {
                 className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition"
               >
                 <FaUser className="text-xl" />
-                <span className="hidden sm:inline-block">Profile</span>
+                <span className="inline-block">Profile</span>
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 bg-white text-[#0a0f1c] rounded-lg shadow-lg w-40 z-10 overflow-hidden">
