@@ -1,6 +1,6 @@
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";  
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -47,12 +47,30 @@ function AnimatedRoutes() {
 
 function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { isLoggedIn } = useAuth();
 
   useEffect(() => {
     const handler = () => setShowOnboarding(true);
     window.addEventListener('openOnboarding', handler);
     return () => window.removeEventListener('openOnboarding', handler);
   }, []);
+
+  // Inject chat widget only if logged in
+  useEffect(() => {
+    const scriptId = 'omnidimension-web-widget';
+    if (isLoggedIn) {
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.async = true;
+        script.src = 'https://backend.omnidim.io/web_widget.js?secret_key=e5fac8d1d091a10aa2b7719ea85af890';
+        document.body.appendChild(script);
+      }
+    } else {
+      const existing = document.getElementById(scriptId);
+      if (existing) existing.remove();
+    }
+  }, [isLoggedIn]);
 
   return (
     <>
