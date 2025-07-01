@@ -83,13 +83,6 @@ npm run dev
 
 ---
 
-## ☁️ Deployment
-
-- **Backend:** Deploy on [Render](https://render.com/) or similar. Set `MONGO_URI` and `PORT` in dashboard.
-- **Frontend:** Deploy on [Netlify](https://netlify.com/), [Vercel](https://vercel.com/), or [Render](https://render.com/). Set `VITE_API_BASE` to your backend API URL.
-
----
-
 ## 🔒 Security
 
 > **Never commit your `.env` files or secrets to GitHub!**
@@ -111,14 +104,14 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 ## 📬 Contact & Support
 
 - 📧 Email: [support@finzen.in](mailto:support@finzen.in)
-- 🌐 Website: [finzen.rishikgoud.com](https://finzen.rishikgoud.com)
+- 🌐 Website: [finzen.rishikgoud.com](https://finzen-z1gq.onrender.com/)
 - 📍 Hyderabad, India
 
 ---
 
 ## 🏆 Credits
 
-Made with ❤️ by Rishik Goud and contributors.
+Made with ❤️ by Rishik Goud and Team CodeQuesters.
 
 ---
 
