@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:5000'
+      '/api': 'http://localhost:5000',
+      '/upi': {
+        target: 'https://gpay-upi-backend-finzen.onrender.com',
+        changeOrigin: true,
+        secure: true
+      }
     }
   }
 })

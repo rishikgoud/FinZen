@@ -2,7 +2,10 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { io as socketIOClient } from "socket.io-client";
 
 const GPayUserContext = createContext();
-const Gpay_API_URL = "http://localhost:3000";
+// Use environment variable or fallback to production URL
+const Gpay_API_URL = import.meta.env.VITE_GPAY_API_URL || (import.meta.env.PROD 
+  ? "https://gpay-upi-backend-finzen.onrender.com"
+  : "http://localhost:3000");
 
 export const GPayUserProvider = ({ children }) => {
   const [gpayUser, setGpayUser] = useState(null);

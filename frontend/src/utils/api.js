@@ -1,8 +1,14 @@
-// const API_BASE = import.meta.env.VITE_API_BASE
-const API_BASE = "http://localhost:5000/api";
+import { logError } from './logger.js';
 
-// GPay UPI Backend URL - Updated to deployed version
-const GPAY_API_BASE = "https://gpay-upi-backend-finzen.onrender.com";
+// API Base URLs - Handle both development and production
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD 
+  ? "https://finzen-backend-99zm.onrender.com/api"  // Your actual deployed backend URL
+  : "http://localhost:5000/api");
+
+// GPay UPI Backend URL - Use proxy in development, direct in production
+const GPAY_API_BASE = import.meta.env.PROD 
+  ? "https://gpay-upi-backend-finzen.onrender.com"
+  : ""; // Use proxy in development
 
 const HF_OPENAI_BASE = "https://router.huggingface.co/novita/v3/openai";
 const HF_MODEL = "baidu/ernie-4.5-21B-a3b";
