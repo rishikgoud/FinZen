@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AIAvatar from "../SpendingCoach/AIAvatar";
+import AIAvatar from "./AIAvatar";
 import MoodSelector from "./MoodSelector";
 import ExpenseBarChart from "./ExpenseBarChart";
 import NudgeCards from "./NudgeCards";

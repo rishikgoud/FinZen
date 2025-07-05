@@ -80,7 +80,7 @@ const ConnectUPIStep = ({ onNext, onBack, onConnect, connectedUpiId }) => {
           <div className="flex items-center gap-2 text-green-400 font-semibold">
             <CheckCircle className="w-5 h-5" />
             Connected: {connectedUpiId}
-          </div>
+            </div>
           <button
             className="px-8 py-2 rounded-full bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow-lg hover:scale-105 transition-all"
             onClick={onNext}
@@ -106,8 +106,8 @@ const ConnectUPIStep = ({ onNext, onBack, onConnect, connectedUpiId }) => {
                 <div className="text-3xl mb-2">{app.icon}</div>
                 <div className="text-sm font-medium">{app.name}</div>
               </motion.button>
-            ))}
-          </div>
+                ))}
+              </div>
           {selectedApp && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -152,14 +152,14 @@ const ConnectUPIStep = ({ onNext, onBack, onConnect, connectedUpiId }) => {
               <ArrowLeft className="w-4 h-4" />
               Back
             </button>
-            <button
+                  <button
               onClick={handleConnect}
               disabled={!selectedApp || !upiId || !password || loading}
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-medium hover:from-[#1db954]/80 hover:to-[#1e90ff]/80 transition-all disabled:opacity-50"
             >
               {loading ? 'Connecting...' : 'Connect'}
               <ArrowRight className="w-4 h-4" />
-            </button>
+                  </button>
           </div>
         </>
       )}
@@ -234,8 +234,8 @@ const FinancialGoalsStep = ({ onNext, onBack }) => {
             <div className="font-medium mb-1 sm:mb-2 text-sm sm:text-base">{goal.name}</div>
             <div className="text-xs sm:text-sm text-[#1db954]">+{goal.xp} XP</div>
           </motion.button>
-        ))}
-      </div>
+                ))}
+              </div>
 
       {selectedGoals.length > 0 && (
         <motion.div
@@ -264,8 +264,8 @@ const FinancialGoalsStep = ({ onNext, onBack }) => {
           Continue
           <ArrowRight className="w-4 h-4" />
         </button>
-      </div>
-    </motion.div>
+              </div>
+            </motion.div>
   );
 };
 
@@ -333,7 +333,7 @@ const SpendingCategoriesStep = ({ onNext, onBack }) => {
             <div className="font-medium text-sm sm:text-base">{category.name}</div>
           </motion.button>
         ))}
-      </div>
+                </div>
 
       <div className="flex flex-col sm:flex-row justify-between gap-4 max-w-md mx-auto">
         <button
@@ -351,8 +351,8 @@ const SpendingCategoriesStep = ({ onNext, onBack }) => {
           Continue
           <ArrowRight className="w-4 h-4" />
         </button>
-      </div>
-    </motion.div>
+              </div>
+            </motion.div>
   );
 };
 
@@ -638,8 +638,8 @@ const Onboarding = ({ onFinish }) => {
                 )}
                 {currentStep === 5 && (
                   <CompletionStep key="step5" onFinish={handleComplete} />
-                )}
-              </AnimatePresence>
+          )}
+        </AnimatePresence>
             </div>
           </div>
         </div>

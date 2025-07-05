@@ -1,13 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGPayUser } from '../../context/GPayUserContext';
-import InsightCard from '../SpendingCoach/InsightCard';
-import QuestionChips from '../SpendingCoach/QuestionChips';
-import AIAvatar from '../SpendingCoach/AIAvatar';
-import ActionCards from '../SpendingCoach/ActionCards';
-import AdventureMap from '../SpendingCoach/AdventureMap';
-import BadgeShelf from '../SpendingCoach/BadgeShelf';
-// import AIAvatar from '../SpendingCoach/AIAvatar';
+import InsightCard from '../spendingcoach/InsightCard';
+import QuestionChips from '../spendingcoach/QuestionChips';
+import AIAvatar from '../spendingcoach/AIAvatar';
+import ActionCards from '../spendingcoach/ActionCards';
+import AdventureMap from '../spendingcoach/AdventureMap';
+import BadgeShelf from '../spendingcoach/BadgeShelf';
+// import AIAvatar from '../spendingcoach/AIAvatar';
 
 // Placeholder imports for future modules
 // import SpendingTimeline from './SpendingTimeline';
