@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login, isLoggedIn, isLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -17,6 +19,30 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const toggleConfirmPassword = () =>
     setShowConfirmPassword((prev) => !prev);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!isLoading && isLoggedIn) {
+      navigate("/dashboard");
+    }
+  }, [isLoggedIn, isLoading, navigate]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1db954] mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render register form if already logged in
+  if (isLoggedIn) {
+    return null;
+  }
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -47,12 +73,16 @@ const Register = () => {
 
       const { token, user } = loginRes.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      // Clear any existing UPI data to ensure new user starts fresh
+      localStorage.removeItem("gpay_token");
+      localStorage.removeItem("gpay_upi_id");
 
-      toast.success("Registered successfully!");
+      // Use the new login method from AuthContext with isNewUser flag
+      login(token, { ...user, isNewUser: true, onboardingComplete: false });
+
+      toast.success("Registration successful! Let's set up your account.");
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/"); // Redirect to home page where RequireOnboarding will handle the flow
       }, 1000);
     } catch (err) {
       const msg = err.response?.data?.message || "Registration failed.";

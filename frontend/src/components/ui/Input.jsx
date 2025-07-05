@@ -9,4 +9,4 @@ const Input = ({ label, type = "text", ...props }) => (
   </div>
 );
 
-export default Input;
+export { Input };

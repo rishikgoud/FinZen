@@ -1,11 +1,12 @@
 import Transaction from "../models/Transaction.js";
+import { io } from '../index.js';
 
 // 🔹 1. Add New Transaction (income or expense)
 export const addTransaction = async (req, res) => {
   try {
-    const { type, amount, category, description, date } = req.body;
+    const { type, amount, category, description, date, paymentId } = req.body;
 
-    if (!type || !amount || !category) {
+    if (!type || !amount || !category || !paymentId) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -16,9 +17,11 @@ export const addTransaction = async (req, res) => {
       category,
       description,
       date: date || new Date(),
+      paymentId,
     });
 
     await newTransaction.save();
+    io.to(newTransaction.user.toString()).emit('transaction:new', newTransaction);
 
     res.status(201).json({
       message: "Transaction added successfully",
@@ -102,6 +105,27 @@ export const getIncomeOverview = async (req, res) => {
     res.json(breakdown); // ✅ RETURN ARRAY
   } catch (err) {
     console.error("❌ Error fetching income data:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// 🔹 Add transaction from GPay mock API (no auth, user provided in body)
+export const addFinzenTransaction = async (req, res) => {
+  try {
+    const { user, paymentId } = req.body;
+    // Check if transaction already exists for this user and paymentId
+    const existing = await Transaction.findOne({ paymentId, user });
+    if (existing) {
+      console.log("Skipping duplicate transaction:", paymentId);
+      // Still emit for real-time updates/analytics
+      io.to(user.toString()).emit('transaction:new', existing);
+      return res.status(200).json({ message: "Already saved, skipping" });
+    }
+    // Do NOT save again
+    // io.to(user.toString()).emit('transaction:new', req.body); // Optionally emit the incoming data
+    return res.status(200).json({ message: "Received for analysis" });
+  } catch (err) {
+    console.error("❌ Error in addFinzenTransaction:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -54,5 +54,52 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Transparent Scrollbar Styles */
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+/* For Internet Explorer */
+* {
+  -ms-overflow-style: none;
+}
+
+/* Ensure smooth scrolling is maintained */
+html, body {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for specific elements if needed */
+.scrollbar-transparent {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-transparent::-webkit-scrollbar {
+  display: none;
+}
+
 
 

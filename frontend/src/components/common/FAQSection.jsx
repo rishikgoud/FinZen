@@ -5,27 +5,57 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 const faqList = [
   {
     q: "Is FinZen free to use?",
-    a: "Yes, FinZen offers a free plan with essential features for everyone. Premium plans are available too.",
+    a: (
+      <>
+        <p>Yes, FinZen offers a free plan that gives you access to all the essential features you need to manage your finances, track expenses, and set goals. You can get started and use the core platform without paying anything.</p>
+        <p>For users who want advanced analytics, premium AI features, or priority support, we also offer affordable premium plans. You can always upgrade or downgrade your plan as your needs change.</p>
+      </>
+    ),
   },
   {
     q: "Is my financial data safe?",
-    a: "Absolutely. We use bank-level AES-256 encryption and never share your data with third parties.",
+    a: (
+      <>
+        <p>Absolutely. We take your privacy and security very seriously. All your financial data is protected with bank-level AES-256 encryption, both in transit and at rest, ensuring that your information is always secure.</p>
+        <p>FinZen will never share your data with third parties without your explicit consent. Our systems are regularly audited, and we follow best practices in data security to keep your information safe.</p>
+      </>
+    ),
   },
   {
     q: "Can I sync multiple UPI apps?",
-    a: "Yes, you can connect GPay, PhonePe, Paytm and many more under a single dashboard.",
+    a: (
+      <>
+        <p>Yes, you can connect and sync multiple UPI apps such as GPay, PhonePe, Paytm, and more, all under a single FinZen dashboard. This allows you to get a unified view of your transactions and spending across all platforms.</p>
+        <p>Our integration is seamless and secure, so you can easily track, categorize, and analyze your UPI transactions without switching between different apps.</p>
+      </>
+    ),
   },
   {
     q: "What is AI Analyzer?",
-    a: "It helps you track patterns, gives nudges, and classifies your transactions automatically using AI.",
+    a: (
+      <>
+        <p>The AI Analyzer is FinZen's intelligent assistant that automatically tracks your spending patterns, classifies your transactions, and provides personalized nudges to help you stay on top of your finances.</p>
+        <p>It uses advanced machine learning to spot trends, alert you to unusual activity, and suggest ways to optimize your budget. The more you use FinZen, the smarter the AI Analyzer becomes.</p>
+      </>
+    ),
   },
   {
     q: "Will I get spending alerts?",
-    a: "Yes, you'll receive instant alerts and nudges if your spending exceeds your set limits.",
+    a: (
+      <>
+        <p>Yes, you'll receive instant alerts and smart nudges whenever your spending approaches or exceeds the limits you've set for yourself. These notifications help you stay mindful and avoid overspending.</p>
+        <p>You can customize your alert preferences, so you only get notified about what matters most to you—whether it's low savings, high expenses, or new opportunities to save.</p>
+      </>
+    ),
   },
   {
     q: "Is there a mobile app?",
-    a: "We’re working on it! FinZen’s mobile app will launch soon with full sync and offline access.",
+    a: (
+      <>
+        <p>We're working hard on the FinZen mobile app! Soon, you'll be able to manage your finances, track expenses, and access all features on the go, with full sync and offline access.</p>
+        <p>Stay tuned for updates—we'll notify all users as soon as the app is available for download on iOS and Android. In the meantime, you can use FinZen's web platform from any device.</p>
+      </>
+    ),
   },
 ];
 
@@ -98,15 +128,15 @@ const FAQ = () => {
 
             <AnimatePresence>
               {openIndex === index && (
-                <motion.p
-                  className="text-gray-300 mt-4"
+                <motion.div
+                  className="text-gray-300 mt-4 space-y-2"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
                 >
                   {item.a}
-                </motion.p>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>

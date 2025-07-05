@@ -5,6 +5,10 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
 
+    // Finzen integration fields
+    userId: { type: String, unique: true, sparse: true }, // For GPay mock API integration
+    upiId: { type: String, unique: true, sparse: true }, // UPI ID for cross-platform sync
+
     profile: {
       firstName: String,
       lastName: String,

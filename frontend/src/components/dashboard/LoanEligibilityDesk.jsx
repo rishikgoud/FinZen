@@ -1,14 +1,53 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { fetchLoanEligibility } from "../../utils/api";
+import { useGPayUser } from "../../context/GPayUserContext";
 
 const LoanEligibilityDesk = () => {
-  const [income, setIncome] = useState("");
+  const { gpayUser, transactions } = useGPayUser();
+  // Deduplicate transactions by paymentId
+  const uniqueTransactions = Array.isArray(transactions)
+    ? Object.values(
+        transactions.reduce((acc, txn) => {
+          if (txn && txn.paymentId && !acc[txn.paymentId]) acc[txn.paymentId] = txn;
+          return acc;
+        }, {})
+      )
+    : [];
+
+  // Compute monthly income, expense, and savings
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const monthlyIncome = uniqueTransactions
+    .filter(
+      (txn) =>
+        txn.type === "income" &&
+        new Date(txn.date).getMonth() === thisMonth &&
+        new Date(txn.date).getFullYear() === thisYear
+    )
+    .reduce((sum, txn) => sum + (txn.amount || 0), 0);
+  const monthlyExpense = uniqueTransactions
+    .filter(
+      (txn) =>
+        txn.type === "expense" &&
+        new Date(txn.date).getMonth() === thisMonth &&
+        new Date(txn.date).getFullYear() === thisYear
+    )
+    .reduce((sum, txn) => sum + (txn.amount || 0), 0);
+  const monthlySavings = monthlyIncome - monthlyExpense;
+
+  const [income, setIncome] = useState(monthlyIncome ? monthlyIncome.toString() : "");
   const [employment, setEmployment] = useState("");
   const [creditScore, setCreditScore] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Update income field if monthlyIncome changes
+  React.useEffect(() => {
+    setIncome(monthlyIncome ? monthlyIncome.toString() : "");
+  }, [monthlyIncome]);
 
   const handleCheck = async (e) => {
     e.preventDefault();
@@ -40,6 +79,16 @@ const LoanEligibilityDesk = () => {
           onChange={(e) => setIncome(e.target.value)}
           required
         />
+        <div className="flex gap-4">
+          <div className="flex-1 bg-white/10 rounded-lg p-3 text-white/80">
+            <div className="text-xs">Monthly Expense</div>
+            <div className="font-bold text-lg">₹{monthlyExpense.toLocaleString()}</div>
+          </div>
+          <div className="flex-1 bg-white/10 rounded-lg p-3 text-white/80">
+            <div className="text-xs">Monthly Savings</div>
+            <div className="font-bold text-lg">₹{monthlySavings.toLocaleString()}</div>
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Employment Type (e.g., salaried, self-employed)"

@@ -25,6 +25,19 @@ const transactionSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    paymentId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    // Finzen integration fields
+    senderUpi: String, // UPI ID of sender
+    receiverUpi: String, // UPI ID of receiver
+    source: {
+      type: String,
+      enum: ["finzen", "gpay_mock", "manual"],
+      default: "manual"
+    }
   },
   { timestamps: true }
 );

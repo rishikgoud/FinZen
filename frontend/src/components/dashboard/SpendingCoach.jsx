@@ -1,267 +1,302 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { fetchSpendingCoachAdvice, fetchTransactions } from "../../utils/api";
-import { FaRobot, FaChartPie, FaChartBar, FaCheckCircle, FaLightbulb } from 'react-icons/fa';
+import React, { useMemo, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useGPayUser } from '../../context/GPayUserContext';
+import InsightCard from '../SpendingCoach/InsightCard';
+import QuestionChips from '../SpendingCoach/QuestionChips';
+import AIAvatar from '../SpendingCoach/AIAvatar';
+import ActionCards from '../SpendingCoach/ActionCards';
+import AdventureMap from '../SpendingCoach/AdventureMap';
+import BadgeShelf from '../SpendingCoach/BadgeShelf';
+// import AIAvatar from '../SpendingCoach/AIAvatar';
 
-const COACH_TIPS = [
-  "Track your expenses daily to spot patterns.",
-  "Set a weekly spending limit and stick to it.",
-  "Automate savings to reach your goals faster.",
-  "Review subscriptions and cancel unused ones.",
-  "Use cash for discretionary spending to control impulses."
+// Placeholder imports for future modules
+// import SpendingTimeline from './SpendingTimeline';
+// import GoalNudger from './GoalNudger';
+// import MoodFeedback from './MoodFeedback';
+// import SwipeSuggestions from './SwipeSuggestions';
+// import WeeklyReports from './WeeklyReports';
+
+const neonBg = '';
+const neonGlow = '';
+const neonCard = 'bg-[#10182a] border border-[#4f8cff44] rounded-2xl p-4 mb-6 shadow-[0_0_24px_4px_#4f8cff55]';
+
+const SUGGESTIONS = [
+  'Where did I overspend?',
+  'Can I save more?',
+  "What's my biggest leak?"
 ];
 
-const EXTRA_TIPS = [
-  "Try the 50/30/20 rule for budgeting.",
-  "Review your spending every Sunday.",
-  "Use separate accounts for savings and expenses.",
-  "Negotiate bills and look for discounts.",
-  "Plan meals to save on groceries.",
-  "Set up auto-pay for recurring bills.",
-  "Track your net worth monthly.",
-  "Avoid impulse purchases by waiting 24 hours."
+const MOODS = [
+  { icon: '😃', label: 'Happy' },
+  { icon: '😐', label: 'Neutral' },
+  { icon: '😬', label: 'Stressed' },
+  { icon: '😢', label: 'Sad' },
 ];
 
 const SpendingCoach = () => {
-  const [advice, setAdvice] = useState(null);
+  const { transactions } = useGPayUser();
+  const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [followup, setFollowup] = useState("");
-  const [followupResponse, setFollowupResponse] = useState("");
-  const [total, setTotal] = useState(null);
-  const [carouselIdx, setCarouselIdx] = useState(0);
-  const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [showReportsModal, setShowReportsModal] = useState(false);
-  const [showTipsModal, setShowTipsModal] = useState(false);
-  const [budget, setBudget] = useState(0);
-  const [budgetInput, setBudgetInput] = useState('');
-  const [budgetSaved, setBudgetSaved] = useState(false);
-  const [extraTipIdx, setExtraTipIdx] = useState(0);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [avatarReaction, setAvatarReaction] = useState('');
+  const [avatarMsg, setAvatarMsg] = useState('');
+  const [avatarTyping, setAvatarTyping] = useState(false);
+  const currentLevel = 2; // mock: user is at level 2
+  const unlockedBadges = [0, 1]; // mock: first two badges unlocked
 
-  const handleAskCoach = async () => {
+  // Group transactions by day (last 7 days)
+  const timelineData = useMemo(() => {
+    if (!Array.isArray(transactions)) return [];
+    const now = new Date();
+    // Create 7 days array
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - i));
+      return {
+        date: d,
+        label: d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' }),
+        total: 0,
+      };
+    });
+    // Sum expenses for each day
+    transactions.forEach(txn => {
+      if (!txn.date || txn.type !== 'expense') return;
+      const txnDate = new Date(txn.date);
+      for (let i = 0; i < days.length; i++) {
+        if (
+          txnDate.getFullYear() === days[i].date.getFullYear() &&
+          txnDate.getMonth() === days[i].date.getMonth() &&
+          txnDate.getDate() === days[i].date.getDate()
+        ) {
+          days[i].total += txn.amount || 0;
+        }
+      }
+    });
+    return days;
+  }, [transactions]);
+
+  // Find max spending for overspending highlight
+  const maxSpending = Math.max(...timelineData.map(d => d.total), 0);
+  const overspendingIdx = timelineData.findIndex(d => d.total === maxSpending && maxSpending > 0);
+
+  // Fetch AI insight
+  const fetchAIInsight = async (userQuery = '', mood = selectedMood) => {
     setLoading(true);
-    setError("");
-    setFollowupResponse("");
-    // Fetch recent transactions
-    const transactions = await fetchTransactions();
-    // Send to AI backend
-    const data = await fetchSpendingCoachAdvice(transactions);
-    if (data) {
-      setAdvice(data.tips);
-      setFollowup(data.followup);
-      setTotal(data.total);
-    } else setError("Could not fetch advice. Try again.");
+    try {
+      const res = await fetch('/api/ai/spending-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactions, mood, userQuery }),
+      });
+      const data = await res.json();
+      setAiResponse(data.message || 'No advice available.');
+    } catch (err) {
+      setAiResponse('Could not fetch advice.');
+    }
     setLoading(false);
   };
 
-  const handleFollowup = async () => {
-    setLoading(true);
-    setError("");
-    // Send the follow-up question as a new prompt
-    const transactions = await fetchTransactions();
-    // If the followup is about monthly budget, send a followup field to the backend
-    if (followup && followup.toLowerCase().includes("monthly budget")) {
-      const data = await fetchSpendingCoachAdvice(transactions, followup);
-      if (data) setFollowupResponse(data.tips || data);
-      else setError("Could not fetch follow-up advice.");
-      setLoading(false);
-      return;
-    }
-    // Default: send as before
-    const prompt = `User follow-up: ${followup}\nTransactions: ${transactions.map(t => `${t.title}: ₹${t.amount}`).join(", ")}`;
-    const data = await fetchSpendingCoachAdvice([...transactions, { title: followup, amount: 0 }]);
-    if (data) setFollowupResponse(data.tips || data);
-    else setError("Could not fetch follow-up advice.");
-    setLoading(false);
+  // Initial AI insight on mount
+  useEffect(() => {
+    fetchAIInsight();
+    // eslint-disable-next-line
+  }, [transactions]);
+
+  // Handle question chip tap or mood select
+  const handleAIQuery = (userQuery) => {
+    fetchAIInsight(userQuery, selectedMood);
+  };
+  const handleMoodSelect = (mood) => {
+    setSelectedMood(mood);
+    fetchAIInsight('', mood);
+  };
+
+  // Sample actions for ActionCards
+  const ACTIONS = [
+    { text: 'Skip 2 coffee outings = ₹360 saved', icon: '☕' },
+    { text: 'Pause unused OTT subscription?', icon: '📺' },
+  ];
+
+  // Handle action card act
+  const handleActionAct = (action, idx) => {
+    setAvatarReaction('celebrate');
+    setAvatarMsg('Great job! You just boosted your savings! 🚀');
+    setAvatarTyping(true);
+    setTimeout(() => {
+      setAvatarReaction(selectedMood || 'default');
+      setAvatarMsg('');
+      setAvatarTyping(false);
+    }, 2000);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="relative bg-gradient-to-br from-[#1db954]/30 to-[#1e90ff]/20 border border-white/10 rounded-3xl p-8 shadow-2xl mb-8 backdrop-blur-xl overflow-hidden"
-    >
-      {/* Animated Mascot */}
-      <motion.div
-        initial={{ scale: 0.8, rotate: -10 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 8 }}
-        className="absolute -top-8 -right-8 md:top-4 md:right-8 z-10"
-      >
-        <FaRobot size={72} className="text-[#1db954] drop-shadow-2xl animate-bounce" />
-      </motion.div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-transparent bg-clip-text flex items-center gap-2">
-          Spending Coach
-        </h3>
-        <button
-          className="bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:scale-105 transition-transform"
-          onClick={handleAskCoach}
-          disabled={loading}
-        >
-          {loading ? "Analyzing..." : "Ask Coach"}
-        </button>
-      </div>
-      {/* Carousel of tips */}
-      <div className="mb-6 flex flex-col items-center">
-        <motion.div
-          key={carouselIdx}
-          initial={{ opacity: 0, y: 20 }}
+    <div className="relative min-h-screen w-full text-white overflow-x-hidden bg-gradient-to-br from-[#0a0f1c] via-[#1a2a4f] to-[#0a0f1c]">
+      <AIAvatar mood={selectedMood || 'default'} reaction={avatarReaction} message={avatarMsg} typing={avatarTyping} />
+      <div className="relative z-10 w-full px-2 sm:px-6 lg:px-16 pt-24 pb-12 flex flex-col gap-8">
+        <AdventureMap currentLevel={currentLevel} />
+        {/* Title */}
+        <motion.h1
+          className="text-3xl md:text-4xl font-bold text-cyan-300 drop-shadow-lg mb-2"
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white/20 border border-white/20 rounded-2xl px-6 py-4 text-lg text-white/90 shadow-lg max-w-xl text-center"
+          transition={{ duration: 0.7 }}
         >
-          {COACH_TIPS[carouselIdx]}
-        </motion.div>
-        <div className="flex gap-2 mt-3">
-          {COACH_TIPS.map((_, idx) => (
+          FinZen AI Spending Coach
+        </motion.h1>
+        <motion.p
+          className="text-lg text-cyan-200 mb-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
+        >
+          Personalized, gamified financial insights. Explore your spending, get smart nudges, and level up your money habits!
+        </motion.p>
+
+        <div className="flex flex-wrap gap-4 items-center mb-2">
+          <span className="text-cyan-200 font-semibold">How are you feeling?</span>
+          {MOODS.map(m => (
             <button
-              key={idx}
-              className={`w-3 h-3 rounded-full ${carouselIdx === idx ? 'bg-[#1db954]' : 'bg-white/30'} transition-all`}
-              onClick={() => setCarouselIdx(idx)}
-            />
+              key={m.icon}
+              onClick={() => handleMoodSelect(m.icon)}
+              className={`text-2xl p-2 rounded-full border-2 ${selectedMood === m.icon ? 'border-cyan-400 bg-cyan-900' : 'border-transparent bg-[#1a2a4f]'} hover:bg-cyan-800 transition`}
+            >
+              {m.icon}
+            </button>
           ))}
         </div>
+        <QuestionChips suggestions={SUGGESTIONS} onSelect={handleAIQuery} />
+        {aiResponse && <InsightCard aiResponse={aiResponse} loading={loading} />}
+        <ActionCards actions={ACTIONS} onAct={handleActionAct} />
+        <BadgeShelf unlocked={unlockedBadges} />
+
+        {/* Responsive dashboard grid for modules */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Spending Timeline Explorer */}
+          <motion.div className={neonCard} initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+            <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <span>📅</span> Where did my money go?
       </div>
-      {/* AI Advice Section */}
-      <div className="mb-4">
-        {error && <p className="text-red-400 mb-2">{error}</p>}
-        {advice && (
+            <div className="h-32 flex items-end gap-2 overflow-x-auto scrollbar-hide relative">
+              {timelineData.map((d, i) => (
+                <div key={i} className="flex flex-col items-center justify-end relative">
+                  {/* AI nudge above overspending bar */}
+                  {i === overspendingIdx && maxSpending > 0 && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-white/80 mb-1 font-semibold"
-          >
-            <span>AI Tips:</span>
-            <div className="text-white/90 whitespace-pre-line bg-white/20 rounded-2xl p-4 border border-white/20 mb-4 mt-2 shadow-lg">
-              {advice}
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 bg-pink-600/90 text-xs px-3 py-1 rounded-xl shadow-lg animate-pulse z-10"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      Overspent ₹{maxSpending.toLocaleString()}!
+                    </motion.div>
+                  )}
+                  <motion.div
+                    className={`w-8 rounded-lg ${i === overspendingIdx && maxSpending > 0 ? 'bg-pink-500 shadow-[0_0_16px_2px_#ff4fa3]' : 'bg-cyan-500'} transition-all duration-300`}
+                    style={{ height: `${maxSpending > 0 ? Math.max(24, (d.total / maxSpending) * 96) : 24}px` }}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    transition={{ delay: 0.1 * i, duration: 0.5 }}
+                  />
+                  <span className="mt-2 text-xs text-cyan-200">{d.label}</span>
+                  <span className="text-xs text-cyan-400">₹{d.total.toLocaleString()}</span>
+                </div>
+              ))}
             </div>
-            {typeof total !== 'undefined' && (
-              <div className="text-white/80 mb-2 font-semibold">Total Spending: ₹{total}</div>
-            )}
-            {followup && (
-              <div className="mb-4">
-                <button
-                  className="bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white px-4 py-1 rounded-md font-semibold shadow hover:scale-105 transition-transform mb-2"
-                  onClick={handleFollowup}
-                  disabled={loading}
+          </motion.div>
+          {/* Smart Goal Nudger */}
+          <motion.div className={neonCard} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+            <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <span>🎯</span> Smart Goal Nudger
+      </div>
+            <div className="flex flex-col gap-3">
+              {/* Animated progress meters */}
+              <div className="flex items-center gap-3">
+                <span className="w-20">Savings</span>
+                <div className="flex-1 h-3 bg-[#1a2a4f] rounded-full overflow-hidden">
+                  <motion.div className="h-3 bg-green-400 rounded-full" initial={{ width: 0 }} animate={{ width: '70%' }} transition={{ duration: 1.2 }} />
+      </div>
+                <span className="ml-2 text-green-300">70%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-20">Dining</span>
+                <div className="flex-1 h-3 bg-[#1a2a4f] rounded-full overflow-hidden">
+                  <motion.div className="h-3 bg-pink-400 rounded-full" initial={{ width: 0 }} animate={{ width: '45%' }} transition={{ duration: 1.2, delay: 0.2 }} />
+        </div>
+                <span className="ml-2 text-pink-300">45%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-20">Shopping</span>
+                <div className="flex-1 h-3 bg-[#1a2a4f] rounded-full overflow-hidden">
+                  <motion.div className="h-3 bg-cyan-400 rounded-full" initial={{ width: 0 }} animate={{ width: '60%' }} transition={{ duration: 1.2, delay: 0.4 }} />
+                </div>
+                <span className="ml-2 text-cyan-300">60%</span>
+              </div>
+            </div>
+          </motion.div>
+          {/* Mood-Based Finance Feedback */}
+          <motion.div className={neonCard} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <span>🧠</span> What's my money mood today?
+            </div>
+            <div className="flex gap-4 items-center">
+              {/* Mood selector */}
+              {['😃', '😐', '😬', '😢'].map((mood, i) => (
+                <motion.button
+                  key={mood}
+                  whileTap={{ scale: 0.9 }}
+                  className="text-3xl p-2 rounded-full bg-[#1a2a4f] hover:bg-cyan-800 focus:ring-2 focus:ring-cyan-400"
                 >
-                  {loading ? "Thinking..." : followup}
-                </button>
-                {followupResponse && (
-                  <div className="text-white/90 whitespace-pre-line bg-white/20 rounded-2xl p-4 border border-white/20 mt-2 shadow-lg">
-                    {followupResponse}
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        )}
-        {!advice && !loading && (
-          <p className="text-white/70">Ask the Spending Coach for a breakdown and savings tips!</p>
-        )}
-      </div>
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-4 mt-6 justify-center">
-        <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#1e90ff] to-[#1db954] text-white font-semibold shadow hover:scale-105 transition-all" onClick={() => setShowBudgetModal(true)}>Set Budget</button>
-        <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow hover:scale-105 transition-all" onClick={() => setShowReportsModal(true)}>View Reports</button>
-        <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-pink-400 to-yellow-400 text-white font-semibold shadow hover:scale-105 transition-all" onClick={() => setShowTipsModal(true)}>Get More Tips</button>
-      </div>
-      {/* Set Budget Modal */}
-      {showBudgetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-br from-[#1db954]/40 to-[#1e90ff]/30 border border-white/20 rounded-2xl p-8 shadow-2xl w-full max-w-md text-white backdrop-blur-xl"
-          >
-            <h4 className="text-2xl font-bold mb-4 flex items-center gap-2"><FaCheckCircle className="text-[#1db954]" /> Set Your Budget</h4>
-            {budgetSaved ? (
-              <div className="text-center">
-                <p className="text-lg mb-4">Budget set to <span className="font-bold text-[#1db954]">₹{budget}</span>!</p>
-                <button className="mt-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow hover:scale-105" onClick={() => { setShowBudgetModal(false); setBudgetSaved(false); }}>Close</button>
-              </div>
-            ) : (
-              <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); setBudget(Number(budgetInput)); setBudgetSaved(true); }}>
-                <input
-                  type="number"
-                  placeholder="Enter monthly budget (₹)"
-                  className="w-full px-4 py-3 rounded-lg bg-[#181f2e] border border-white/20 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#1db954]"
-                  value={budgetInput}
-                  onChange={e => setBudgetInput(e.target.value)}
-                  required
-                />
-                <button type="submit" className="px-6 py-2 rounded-full bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow hover:scale-105">Save Budget</button>
-                <button type="button" className="px-6 py-2 rounded-full bg-white/20 text-white font-semibold shadow hover:bg-white/30" onClick={() => setShowBudgetModal(false)}>Cancel</button>
-              </form>
-            )}
-          </motion.div>
-        </div>
-      )}
-      {/* Reports Modal */}
-      {showReportsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-br from-[#1e90ff]/40 to-[#1db954]/30 border border-white/20 rounded-2xl p-8 shadow-2xl w-full max-w-lg text-white backdrop-blur-xl"
-          >
-            <h4 className="text-2xl font-bold mb-4 flex items-center gap-2"><FaChartPie className="text-[#1e90ff]" /> Spending Reports</h4>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              {/* Mock Pie Chart */}
-              <div className="bg-white/20 rounded-full w-40 h-40 flex items-center justify-center shadow-inner relative">
-                <FaChartPie size={100} className="text-[#1db954] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
-                <span className="text-2xl font-bold text-white/90">Pie Chart</span>
-              </div>
-              {/* Mock Bar Chart */}
-              <div className="bg-white/20 rounded-2xl w-48 h-40 flex flex-col items-center justify-center shadow-inner relative">
-                <FaChartBar size={80} className="text-[#1e90ff] opacity-30 mb-2" />
-                <span className="text-lg font-bold text-white/90">Bar Chart</span>
-              </div>
-            </div>
-            <div className="mt-6 text-center">
-              <button className="px-6 py-2 rounded-full bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow hover:scale-105" onClick={() => setShowReportsModal(false)}>Close</button>
+                  {mood}
+                </motion.button>
+              ))}
+              <span className="ml-4 text-cyan-200">Coach adapts advice to your mood!</span>
             </div>
           </motion.div>
+          {/* Swipe-to-Act AI Suggestions */}
+          <motion.div className={neonCard} initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+            <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <span>💡</span> Swipe-to-Act Suggestions
         </div>
-      )}
-      {/* More Tips Modal */}
-      {showTipsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+              {/* Swipeable suggestion cards (placeholder) */}
+              {[{ text: 'Skip 2 coffee outings = ₹360 saved', icon: '☕' }, { text: 'Pause unused OTT subscription?', icon: '📺' }].map((s, i) => (
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-br from-pink-400/40 to-yellow-400/30 border border-white/20 rounded-2xl p-8 shadow-2xl w-full max-w-md text-white backdrop-blur-xl flex flex-col items-center"
-          >
-            <h4 className="text-2xl font-bold mb-4 flex items-center gap-2"><FaLightbulb className="text-yellow-300" /> More Financial Tips</h4>
+                  key={i}
+                  className="min-w-[220px] bg-[#181f36] border border-cyan-500/30 rounded-xl p-4 flex flex-col items-center gap-2 shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                  whileTap={{ scale: 0.95, rotate: i === 0 ? -5 : 5 }}
+                >
+                  <span className="text-2xl">{s.icon}</span>
+                  <span className="text-cyan-100 text-center">{s.text}</span>
+                  <button className="mt-2 px-3 py-1 bg-cyan-700 rounded-full text-xs text-white hover:bg-cyan-500 transition">Act</button>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+          {/* Weekly Personal Finance Reports */}
+          <motion.div className={neonCard} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+            <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <span>📬</span> Weekly Personal Finance Reports
+            </div>
+            <div className="flex gap-4 flex-wrap">
+              {/* Digital postcard cards (placeholder) */}
+              {[{ title: "This week's Hero: Grocery Budget", emoji: '🛒' }, { title: "Villain: Food Delivery 😬", emoji: '🍔' }].map((r, i) => (
             <motion.div
-              key={extraTipIdx}
+                  key={i}
+                  className="w-44 h-28 bg-gradient-to-br from-[#1a2a4f] to-[#4f8cff33] border border-cyan-400/30 rounded-xl p-3 flex flex-col justify-between shadow-lg hover:scale-105 transition-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white/20 border border-white/20 rounded-2xl px-6 py-4 text-lg text-white/90 shadow-lg max-w-xl text-center mb-4"
+                  transition={{ delay: 0.1 * i }}
             >
-              {EXTRA_TIPS[extraTipIdx]}
+                  <span className="text-2xl">{r.emoji}</span>
+                  <span className="text-cyan-100 text-sm">{r.title}</span>
+                  <span className="text-xs text-cyan-400 mt-2">Collectible</span>
             </motion.div>
-            <div className="flex gap-2 mb-4">
-              <button className="px-3 py-1 rounded-full bg-[#1db954] text-white font-semibold shadow hover:scale-110 transition-all" onClick={() => setExtraTipIdx((extraTipIdx - 1 + EXTRA_TIPS.length) % EXTRA_TIPS.length)}>&lt;</button>
-              <button className="px-3 py-1 rounded-full bg-[#1e90ff] text-white font-semibold shadow hover:scale-110 transition-all" onClick={() => setExtraTipIdx((extraTipIdx + 1) % EXTRA_TIPS.length)}>&gt;</button>
+              ))}
             </div>
-            <button className="px-6 py-2 rounded-full bg-gradient-to-r from-[#1db954] to-[#1e90ff] text-white font-semibold shadow hover:scale-105" onClick={() => setShowTipsModal(false)}>Close</button>
           </motion.div>
         </div>
-      )}
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

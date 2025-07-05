@@ -1,14 +1,205 @@
+import Transaction from "../models/Transaction.js";
+
 export const getInsights = async (req, res) => {
   try {
-    // Example logic - you can enhance this based on actual spending and goals
-    const insights = [
-      "You spent 40% of your budget on food.",
-      "Try saving ₹500 more this week to hit your goal.",
-      "Investments in mutual funds have shown steady growth.",
-      "Consider reducing dine-out expenses to boost savings.",
-    ];
+    const userId = req.user.id;
+    
+    // Get user's transactions from the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const transactions = await Transaction.find({
+      user: userId,
+      date: { $gte: thirtyDaysAgo }
+    }).sort({ date: -1 });
 
-    res.json(insights);
+    if (!transactions || transactions.length === 0) {
+      // Return default insights for new users
+      return res.json([
+        {
+          title: "Welcome to FinZen!",
+          amount: "₹0",
+          type: "welcome",
+          description: "Start adding transactions to get personalized insights"
+        },
+        {
+          title: "Set Your First Goal",
+          amount: "₹5,000",
+          type: "goal",
+          description: "Create a savings goal to track your progress"
+        },
+        {
+          title: "Connect Your UPI",
+          amount: "Auto-sync",
+          type: "connect",
+          description: "Link your UPI for automatic transaction tracking"
+        }
+      ]);
+    }
+
+    // Analyze spending patterns
+    const expenses = transactions.filter(t => t.type === 'expense');
+    const income = transactions.filter(t => t.type === 'income');
+    
+    const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+    const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
+    const netSavings = totalIncome - totalExpenses;
+    
+    // Category analysis
+    const categorySpending = {};
+    expenses.forEach(t => {
+      categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+    });
+    
+    const topCategories = Object.entries(categorySpending)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3);
+    
+    // Recent spending trend (last 7 days vs previous 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    
+    const recentExpenses = expenses.filter(t => t.date >= sevenDaysAgo);
+    const previousExpenses = expenses.filter(t => 
+      t.date >= fourteenDaysAgo && t.date < sevenDaysAgo
+    );
+    
+    const recentTotal = recentExpenses.reduce((sum, t) => sum + t.amount, 0);
+    const previousTotal = previousExpenses.reduce((sum, t) => sum + t.amount, 0);
+    const spendingChange = previousTotal > 0 ? ((recentTotal - previousTotal) / previousTotal) * 100 : 0;
+    
+    // Generate dynamic insights
+    const insights = [];
+    
+    // 1. Spending Overview
+    if (totalExpenses > 0) {
+      insights.push({
+        title: "Monthly Spending",
+        amount: `₹${totalExpenses.toLocaleString()}`,
+        type: "spending",
+        description: `${spendingChange > 0 ? '+' : ''}${spendingChange.toFixed(1)}% from last week`,
+        trend: spendingChange > 0 ? "up" : "down"
+      });
+    }
+    
+    // 2. Savings Insight
+    if (netSavings > 0) {
+      insights.push({
+        title: "Net Savings",
+        amount: `₹${netSavings.toLocaleString()}`,
+        type: "savings",
+        description: `${((netSavings / totalIncome) * 100).toFixed(1)}% of income saved`,
+        trend: "positive"
+      });
+    } else if (netSavings < 0) {
+      insights.push({
+        title: "Overspending Alert",
+        amount: `₹${Math.abs(netSavings).toLocaleString()}`,
+        type: "alert",
+        description: "You're spending more than you earn",
+        trend: "negative"
+      });
+    }
+    
+    // 3. Top Spending Category
+    if (topCategories.length > 0) {
+      const [topCategory, topAmount] = topCategories[0];
+      insights.push({
+        title: `Top: ${topCategory}`,
+        amount: `₹${topAmount.toLocaleString()}`,
+        type: "category",
+        description: `${((topAmount / totalExpenses) * 100).toFixed(1)}% of total spending`,
+        trend: "neutral"
+      });
+    }
+    
+    // 4. Income Analysis
+    if (totalIncome > 0) {
+      const avgDailyIncome = totalIncome / 30;
+      insights.push({
+        title: "Daily Income Avg",
+        amount: `₹${avgDailyIncome.toFixed(0)}`,
+        type: "income",
+        description: "Based on last 30 days",
+        trend: "positive"
+      });
+    }
+    
+    // 5. Spending Efficiency
+    if (totalExpenses > 0 && totalIncome > 0) {
+      const efficiency = ((totalIncome - totalExpenses) / totalIncome) * 100;
+      if (efficiency > 20) {
+        insights.push({
+          title: "Great Savings Rate!",
+          amount: `${efficiency.toFixed(1)}%`,
+          type: "achievement",
+          description: "You're saving more than 20% of income",
+          trend: "positive"
+        });
+      } else if (efficiency < 10) {
+        insights.push({
+          title: "Low Savings Rate",
+          amount: `${efficiency.toFixed(1)}%`,
+          type: "warning",
+          description: "Try to save at least 10% of income",
+          trend: "negative"
+        });
+      }
+    }
+    
+    // 6. Category Optimization
+    if (topCategories.length > 1) {
+      const [secondCategory, secondAmount] = topCategories[1];
+      const potentialSavings = secondAmount * 0.1; // 10% reduction
+      insights.push({
+        title: `Save on ${secondCategory}`,
+        amount: `₹${potentialSavings.toFixed(0)}`,
+        type: "optimization",
+        description: "10% reduction potential",
+        trend: "positive"
+      });
+    }
+    
+    // 7. Transaction Frequency
+    const avgTransactionsPerDay = transactions.length / 30;
+    if (avgTransactionsPerDay > 3) {
+      insights.push({
+        title: "High Transaction Rate",
+        amount: `${avgTransactionsPerDay.toFixed(1)}/day`,
+        type: "frequency",
+        description: "Consider batch purchases",
+        trend: "neutral"
+      });
+    }
+    
+    // 8. Weekend vs Weekday Spending
+    const weekendTransactions = expenses.filter(t => {
+      const day = new Date(t.date).getDay();
+      return day === 0 || day === 6; // Sunday or Saturday
+    });
+    const weekdayTransactions = expenses.filter(t => {
+      const day = new Date(t.date).getDay();
+      return day !== 0 && day !== 6;
+    });
+    
+    const weekendTotal = weekendTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const weekdayTotal = weekdayTransactions.reduce((sum, t) => sum + t.amount, 0);
+    
+    if (weekendTotal > weekdayTotal * 1.5) {
+      insights.push({
+        title: "Weekend Spending High",
+        amount: `₹${weekendTotal.toLocaleString()}`,
+        type: "pattern",
+        description: "50% more than weekday spending",
+        trend: "negative"
+      });
+    }
+    
+    // Return top 6 most relevant insights
+    return res.json(insights.slice(0, 6));
+    
   } catch (err) {
     console.error("Error fetching insights:", err);
     res.status(500).json({ message: "Server error" });
