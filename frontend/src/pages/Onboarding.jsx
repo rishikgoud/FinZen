@@ -12,6 +12,11 @@ import {
   ArrowLeft
 } from "lucide-react";
 
+// Add this at the top, after imports
+const GPAY_API_BASE = import.meta.env.PROD
+  ? "https://gpay-upi-backend-finzen.onrender.com"
+  : "http://localhost:5000";
+
 // Step 1: Connect UPI App
 const ConnectUPIStep = ({ onNext, onBack, onConnect, connectedUpiId }) => {
   const [selectedApp, setSelectedApp] = useState(null);
@@ -34,7 +39,7 @@ const ConnectUPIStep = ({ onNext, onBack, onConnect, connectedUpiId }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/upi/auth', {
+      const res = await fetch(`${GPAY_API_BASE}/upi/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ upiId, password }),
