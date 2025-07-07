@@ -1,5 +1,7 @@
+// ✅ Load .env FIRST
 import dotenv from 'dotenv';
 dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import connectDB from './config/db.js';
@@ -13,29 +15,44 @@ import insightRoutes from "./routes/insightRoutes.js";
 import transactionRoutes from './routes/transactionRoutes.js';
 import mockTransactionRoutes from './routes/mockTransactionRoutes.js';
 import upiRoutes from './routes/upiRoutes.js';
-import incVsExpRoutes from './routes/incVsExpRoute.js'
+import incVsExpRoutes from './routes/incVsExpRoute.js';
 import dashboardRoutes from './routes/dashboard.js';
 import spendingCoachHf from './routes/spendingCoachHf.js';
 import aiSpendingInsight from './routes/aiSpendingInsight.js';
 import otpRoutes from './routes/otpRoutes.js';
 import finzenApiRoutes from './routes/finzenApiRoutes.js';
 
-
 const app = express();
 
-// Middleware
+// ✅ Define allowed origins
 const allowedOrigins = [
   "https://finzen-z1gq.onrender.com",
   "http://localhost:5173",
-  "http://localhost:5174" // <-- NO comma after the last item!
-];
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+  "http://localhost:5174",
+  process.env.FRONTEND_URL // Optional: from .env
+].filter(Boolean);
+
+// ✅ Dynamic CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+};
+
+// ✅ Apply middleware
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // for preflight
 app.use(express.json());
 
-// Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api', cardRoutes);
@@ -50,20 +67,37 @@ app.use('/api/ai/spending-insight', aiSpendingInsight);
 app.use('/api/otp', otpRoutes);
 app.use('/api/v1', finzenApiRoutes);
 
-// Health check
+// ✅ Health check route
 app.get('/', (req, res) => res.send('🚀 FinZen Backend Running'));
 
-// DB + Server
+// ✅ Connect DB
 connectDB();
+
+// ✅ Setup server + Socket.IO
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Socket.IO: Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
   },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
+// ✅ Socket.IO logic
 io.on('connection', (socket) => {
   console.log('🔌 New client connected:', socket.id);
 
@@ -79,7 +113,10 @@ io.on('connection', (socket) => {
   });
 });
 
-// Export io for use in controllers
+// ✅ Export Socket.IO instance (optional)
 export { io };
 
-server.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+// ✅ Start the server
+server.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT} | Live`)
+);
