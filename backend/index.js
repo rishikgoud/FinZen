@@ -41,7 +41,6 @@ const allowedOrigins = [
   process.env.FRONTEND_URL // optional dynamic env
 ].filter(Boolean);
 
-// ✅ Configure dynamic CORS
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
