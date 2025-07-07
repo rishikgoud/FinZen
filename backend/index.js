@@ -1,17 +1,26 @@
-// ✅ Load .env FIRST
+// ✅ Load environment variables
 import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
-import connectDB from './config/db.js';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import connectDB from './config/db.js';
 
+// ✅ Optional: Safe FinZen sync import
+try {
+  await import('./services/finzenSync.js');
+  console.log('🔄 Background FinZen sync started ✅');
+} catch (error) {
+  console.warn('⚠️ FinZen sync service failed to start:', error.message);
+}
+
+// ✅ Routes
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
 import cardRoutes from './routes/cardRoutes.js';
-import insightRoutes from "./routes/insightRoutes.js";
+import insightRoutes from './routes/insightRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import mockTransactionRoutes from './routes/mockTransactionRoutes.js';
 import upiRoutes from './routes/upiRoutes.js';
@@ -24,21 +33,21 @@ import finzenApiRoutes from './routes/finzenApiRoutes.js';
 
 const app = express();
 
-// ✅ Define allowed origins
+// ✅ Define allowed frontend origins
 const allowedOrigins = [
   "https://finzen-z1gq.onrender.com",
   "http://localhost:5173",
   "http://localhost:5174",
-  process.env.FRONTEND_URL // Optional: from .env
+  process.env.FRONTEND_URL // optional dynamic env
 ].filter(Boolean);
 
-// ✅ Dynamic CORS configuration
+// ✅ Configure dynamic CORS
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("❌ Not allowed by CORS: " + origin));
     }
   },
   credentials: true,
@@ -47,20 +56,22 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// ✅ Apply middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // for preflight
+app.options('*', cors(corsOptions)); // enable preflight
 app.use(express.json());
 
-// ✅ Routes
+// ✅ Connect MongoDB
+connectDB();
+
+// ✅ API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api', cardRoutes);
-app.use("/api", insightRoutes);
+app.use('/api', insightRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/mock', mockTransactionRoutes);
 app.use('/upi', upiRoutes);
-app.use("/api", incVsExpRoutes);
+app.use('/api', incVsExpRoutes);
 app.use('/api', dashboardRoutes);
 app.use('/api/spending-coach-hf', spendingCoachHf);
 app.use('/api/ai/spending-insight', aiSpendingInsight);
@@ -68,12 +79,15 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/v1', finzenApiRoutes);
 
 // ✅ Health check route
-app.get('/', (req, res) => res.send('🚀 FinZen Backend Running'));
+app.get('/', (req, res) => {
+  res.json({
+    status: '🚀 FinZen Backend Running',
+    timestamp: new Date().toISOString(),
+    frontendAllowedOrigins: allowedOrigins,
+  });
+});
 
-// ✅ Connect DB
-connectDB();
-
-// ✅ Setup server + Socket.IO
+// ✅ Create HTTP server and Socket.IO
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
@@ -83,7 +97,7 @@ const io = new SocketIOServer(server, {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Socket.IO: Not allowed by CORS"));
+        callback(new Error("Socket.IO CORS blocked: " + origin));
       }
     },
     credentials: true,
@@ -94,29 +108,29 @@ const io = new SocketIOServer(server, {
   transports: ['websocket', 'polling'],
   allowEIO3: true,
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
 });
 
-// ✅ Socket.IO logic
+// ✅ Socket.IO events
 io.on('connection', (socket) => {
-  console.log('🔌 New client connected:', socket.id);
+  console.log('🔌 Socket connected:', socket.id);
 
   socket.on('join', (userId) => {
     if (userId) {
       socket.join(userId);
-      console.log(`Socket ${socket.id} joined room ${userId}`);
+      console.log(`🔁 ${socket.id} joined room ${userId}`);
     }
   });
 
   socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+    console.log('❌ Socket disconnected:', socket.id);
   });
 });
 
-// ✅ Export Socket.IO instance (optional)
+// ✅ Export io if used in other files
 export { io };
 
-// ✅ Start the server
-server.listen(PORT, () =>
-  console.log(`✅ Server running on http://localhost:${PORT} | Live`)
-);
+// ✅ Start server
+server.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT} or on Render`);
+});
